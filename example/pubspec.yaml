@@ -1,6 +1,5 @@
 name: sqflite_hooks_example
 description: Demonstrates how to use the sqflite_hooks plugin.
-publish_to: 'none'
 version: 1.0.0+1
 
 environment:

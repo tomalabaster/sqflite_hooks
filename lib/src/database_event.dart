@@ -1,4 +1,3 @@
-
 import 'package:sqflite_hooks/src/database_operation.dart';
 
 class DatabaseEvent {
