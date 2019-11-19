@@ -1,3 +1,7 @@
+## 1.1.0
+
+Adding in hooks functionality to batches.
+
 ## 1.0.0
 
 Initial release

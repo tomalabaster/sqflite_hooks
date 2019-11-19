@@ -82,3 +82,7 @@ database.removeHook('NewUserHook');
 ```
 
 **Please note:** all hooks for a `predicate` returning `true` will run and be `await`-ed before the database operation completes.
+
+### Batches
+
+Hooks on a `HookedDatabase` will also be fired when using a `Batch`. Hooks get fired once the `commit` method has been called on the `Batch`, but after **all database operations for the batch has completed**.
