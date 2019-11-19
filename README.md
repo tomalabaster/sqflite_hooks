@@ -85,4 +85,24 @@ database.removeHook('NewUserHook');
 
 ### Batches
 
-Hooks on a `HookedDatabase` will also be fired when using a `Batch`. Hooks get fired once the `commit` method has been called on the `Batch`, but after **all database operations for the batch has completed**.
+Hooks on a `HookedDatabase` will also be fired when using a `HookedBatch`. You can get a `HookedBatch` object as you would usually get a `Batch`:
+
+```dart
+var batch = database.batch(); // this returns a HookedBatch object but the type exposed is a Batch
+```
+
+Hooks get fired once the `commit` method has been called on the `HookedBatch`, but after **all database operations for the batch has completed**.
+
+### Transactions
+
+Hooks on a `HookedDatabase` will also be fired when using a `HookedTransaction`. You can get a `HookedTransaction` object as you would usually get a `Transaction`:
+
+```dart
+await database.transaction((transaction) async {
+    // this gives you a HookedTransaction object but the type exposed is a Transaction
+
+    // use the transaction object as normal
+});
+```
+
+Hooks get fired for each `operation` performed on a `HookedTransaction`
