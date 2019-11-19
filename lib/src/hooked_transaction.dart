@@ -8,6 +8,8 @@ class HookedTransaction implements Transaction {
   final Transaction _transaction;
   final HookedDatabaseExecutorMixin _database;
 
+  final List<DatabaseEvent> _events = [];
+
   HookedTransaction(this._transaction, this._database);
 
   @override
@@ -15,44 +17,70 @@ class HookedTransaction implements Transaction {
 
   @override
   Future<int> delete(String table, {String where, List whereArgs}) async {
-    var result = await this
-        ._transaction
-        .delete(table, where: where, whereArgs: whereArgs);
+    var result;
 
-    this._database.processHooks(
-        DatabaseEvent(DatabaseOperation.delete, table, null, where, whereArgs));
+    try {
+      result = await this
+          ._transaction
+          .delete(table, where: where, whereArgs: whereArgs);
+    } catch (e) {
+      rethrow;
+    }
+
+    var event =
+        DatabaseEvent(DatabaseOperation.delete, table, null, where, whereArgs);
+
+    this._events.add(event);
+    this._database.processHooks(event);
 
     return result;
   }
 
   @override
-  Future<void> execute(String sql, [List arguments]) =>
-      this._transaction.execute(sql, arguments);
+  Future<void> execute(String sql, [List arguments]) {
+    try {
+      return this._transaction.execute(sql, arguments);
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   @override
   Future<int> insert(String table, Map<String, dynamic> values,
       {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) async {
-    var result = await this._transaction.insert(table, values,
-        nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+    var result;
 
-    this._database.processHooks(
-        DatabaseEvent(DatabaseOperation.insert, table, values, null, null));
+    try {
+      result = await this._transaction.insert(table, values,
+          nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+    } catch (e) {
+      rethrow;
+    }
+
+    var event =
+        DatabaseEvent(DatabaseOperation.insert, table, values, null, null);
+
+    this._events.add(event);
+    this._database.processHooks(event);
 
     return result;
   }
 
   @override
   Future<List<Map<String, dynamic>>> query(String table,
-          {bool distinct,
-          List<String> columns,
-          String where,
-          List whereArgs,
-          String groupBy,
-          String having,
-          String orderBy,
-          int limit,
-          int offset}) =>
-      this._transaction.query(table,
+      {bool distinct,
+      List<String> columns,
+      String where,
+      List whereArgs,
+      String groupBy,
+      String having,
+      String orderBy,
+      int limit,
+      int offset}) {
+    var result;
+
+    try {
+      result = this._transaction.query(table,
           distinct: distinct,
           columns: columns,
           where: where,
@@ -62,22 +90,64 @@ class HookedTransaction implements Transaction {
           orderBy: orderBy,
           limit: limit,
           offset: offset);
+    } catch (e) {
+      rethrow;
+    }
+
+    return result;
+  }
 
   @override
-  Future<int> rawDelete(String sql, [List arguments]) =>
-      this._transaction.rawDelete(sql, arguments);
+  Future<int> rawDelete(String sql, [List arguments]) {
+    var result;
+
+    try {
+      result = this._transaction.rawDelete(sql, arguments);
+    } catch (e) {
+      rethrow;
+    }
+
+    return result;
+  }
 
   @override
-  Future<int> rawInsert(String sql, [List arguments]) =>
+  Future<int> rawInsert(String sql, [List arguments]) {
+    var result;
+
+    try {
       this._transaction.rawInsert(sql, arguments);
+    } catch (e) {
+      rethrow;
+    }
+
+    return result;
+  }
 
   @override
-  Future<List<Map<String, dynamic>>> rawQuery(String sql, [List arguments]) =>
-      this._transaction.rawQuery(sql, arguments);
+  Future<List<Map<String, dynamic>>> rawQuery(String sql, [List arguments]) {
+    var result;
+
+    try {
+      result = this._transaction.rawQuery(sql, arguments);
+    } catch (e) {
+      rethrow;
+    }
+
+    return result;
+  }
 
   @override
-  Future<int> rawUpdate(String sql, [List arguments]) =>
-      this._transaction.rawUpdate(sql, arguments);
+  Future<int> rawUpdate(String sql, [List arguments]) {
+    var result;
+
+    try {
+      result = this._transaction.rawUpdate(sql, arguments);
+    } catch (e) {
+      rethrow;
+    }
+
+    return result;
+  }
 
   @override
   Future<int> update(String table, Map<String, dynamic> values,
@@ -89,8 +159,11 @@ class HookedTransaction implements Transaction {
         whereArgs: whereArgs,
         conflictAlgorithm: conflictAlgorithm);
 
-    this._database.processHooks(DatabaseEvent(
-        DatabaseOperation.update, table, values, where, whereArgs));
+    var event = DatabaseEvent(
+        DatabaseOperation.update, table, values, where, whereArgs);
+
+    this._events.add(event);
+    this._database.processHooks(event);
 
     return result;
   }
