@@ -1,6 +1,7 @@
 import 'package:sqflite/sqlite_api.dart';
 import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_operation.dart';
+import 'package:sqflite_hooks/src/hooked_batch.dart';
 import 'package:sqflite_hooks/src/hooked_database_mixin.dart';
 
 mixin HookedDatabaseExecutorMixin on HookedDatabaseMixin, DatabaseExecutor {
@@ -54,7 +55,7 @@ mixin HookedDatabaseExecutorMixin on HookedDatabaseMixin, DatabaseExecutor {
   }
 
   @override
-  Batch batch() => this.database.batch();
+  Batch batch() => HookedBatch(this.database.batch(), this);
 
   @override
   Future<int> delete(String table, {String where, List whereArgs}) async {

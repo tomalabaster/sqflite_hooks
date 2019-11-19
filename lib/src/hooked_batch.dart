@@ -1,22 +1,38 @@
 import 'package:sqflite/sqlite_api.dart';
+import 'package:sqflite_hooks/src/database_event.dart';
+import 'package:sqflite_hooks/src/database_operation.dart';
 import 'package:sqflite_hooks/src/hooked_database_executor_mixin.dart';
 
 class HookedBatch implements Batch {
   final Batch _batch;
   final HookedDatabaseExecutorMixin _database;
 
+  final List<DatabaseEvent> _events = [];
+
   HookedBatch(this._batch, this._database);
 
   @override
-  Future<List> commit({bool exclusive, bool noResult, bool continueOnError}) =>
-      this._batch.commit(
-          exclusive: exclusive,
-          noResult: noResult,
-          continueOnError: continueOnError);
+  Future<List> commit(
+      {bool exclusive, bool noResult, bool continueOnError}) async {
+    var result = await this._batch.commit(
+        exclusive: exclusive,
+        noResult: noResult,
+        continueOnError: continueOnError);
+
+    for (var event in this._events) {
+      this._database.processHooks(event);
+    }
+
+    return result;
+  }
 
   @override
-  void delete(String table, {String where, List whereArgs}) =>
-      this._batch.delete(table, where: where, whereArgs: whereArgs);
+  void delete(String table, {String where, List whereArgs}) {
+    this._batch.delete(table, where: where, whereArgs: whereArgs);
+
+    this._events.add(
+        DatabaseEvent(DatabaseOperation.delete, table, null, where, whereArgs));
+  }
 
   @override
   void execute(String sql, [List arguments]) =>
@@ -24,9 +40,13 @@ class HookedBatch implements Batch {
 
   @override
   void insert(String table, Map<String, dynamic> values,
-          {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) =>
-      this._batch.insert(table, values,
-          nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+      {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) {
+    this._batch.insert(table, values,
+        nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+
+    this._events.add(
+        DatabaseEvent(DatabaseOperation.insert, table, values, null, null));
+  }
 
   @override
   void query(String table,
@@ -68,11 +88,13 @@ class HookedBatch implements Batch {
 
   @override
   void update(String table, Map<String, dynamic> values,
-          {String where,
-          List whereArgs,
-          ConflictAlgorithm conflictAlgorithm}) =>
-      this._batch.update(table, values,
-          where: where,
-          whereArgs: whereArgs,
-          conflictAlgorithm: conflictAlgorithm);
+      {String where, List whereArgs, ConflictAlgorithm conflictAlgorithm}) {
+    this._batch.update(table, values,
+        where: where,
+        whereArgs: whereArgs,
+        conflictAlgorithm: conflictAlgorithm);
+
+    this._events.add(DatabaseEvent(
+        DatabaseOperation.update, table, values, where, whereArgs));
+  }
 }

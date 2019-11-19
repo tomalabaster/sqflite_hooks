@@ -2,7 +2,6 @@ import 'package:sqflite/sqlite_api.dart';
 import 'package:sqflite_hooks/src/base_hooked_database.dart';
 import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_hook.dart';
-import 'package:sqflite_hooks/src/hooked_batch.dart';
 
 mixin HookedDatabaseMixin on BaseHookedDatabase, Database {
   List<DatabaseHook> _hooks;
@@ -39,9 +38,6 @@ mixin HookedDatabaseMixin on BaseHookedDatabase, Database {
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action,
           {bool exclusive}) =>
       this.database.transaction(action, exclusive: exclusive);
-
-  @override
-  Batch batch() => HookedBatch(this.database.batch(), this);
 
   void addHook(bool Function(DatabaseEvent) predicate,
       Function(DatabaseEvent) hook, String key) {
