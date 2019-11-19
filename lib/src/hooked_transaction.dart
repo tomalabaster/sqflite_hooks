@@ -1,6 +1,7 @@
 import 'package:sqflite/sqlite_api.dart';
 import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_operation.dart';
+import 'package:sqflite_hooks/src/hooked_batch.dart';
 import 'package:sqflite_hooks/src/hooked_database_executor_mixin.dart';
 
 class HookedTransaction implements Transaction {
@@ -10,7 +11,7 @@ class HookedTransaction implements Transaction {
   HookedTransaction(this._transaction, this._database);
 
   @override
-  Batch batch() => this._transaction.batch();
+  Batch batch() => HookedBatch(this._transaction.batch(), this._database);
 
   @override
   Future<int> delete(String table, {String where, List whereArgs}) async {

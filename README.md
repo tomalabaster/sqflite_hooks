@@ -83,16 +83,6 @@ database.removeHook('NewUserHook');
 
 **Please note:** all hooks for a `predicate` returning `true` will run and be `await`-ed before the database operation completes.
 
-### Batches
-
-Hooks on a `HookedDatabase` will also be fired when using a `HookedBatch`. You can get a `HookedBatch` object as you would usually get a `Batch`:
-
-```dart
-var batch = database.batch(); // this returns a HookedBatch object but the type exposed is a Batch
-```
-
-Hooks get fired once the `commit` method has been called on the `HookedBatch`, but after **all database operations for the batch has completed**.
-
 ### Transactions
 
 Hooks on a `HookedDatabase` will also be fired when using a `HookedTransaction`. You can get a `HookedTransaction` object as you would usually get a `Transaction`:
@@ -106,3 +96,15 @@ await database.transaction((transaction) async {
 ```
 
 Hooks get fired for each `operation` performed on a `HookedTransaction`
+
+### Batches
+
+Hooks on a `HookedDatabase` will also be fired when using a `HookedBatch`. You can get a `HookedBatch` object as you would usually get a `Batch`:
+
+```dart
+var batch = database.batch(); // this returns a HookedBatch object but the type exposed is a Batch
+```
+
+Hooks get fired once the `commit` method has been called on the `HookedBatch`, but after **all database operations for the batch has completed**.
+
+A `HookedBatch` is also provided when using `transaction.batch()` and has its hooks fired once the `commit` method is called.

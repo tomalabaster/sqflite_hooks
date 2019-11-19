@@ -1,6 +1,6 @@
 name: sqflite_hooks
 description: An extension to sqflite for adding hooks to database actions.
-version: 1.2.0
+version: 1.3.0
 author: Tom Alabaster <tomalabasteruk@gmail.com>
 homepage: https://github.com/tomalabaster/sqflite_hooks
 

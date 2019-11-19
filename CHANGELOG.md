@@ -1,3 +1,7 @@
+## 1.3.0
+
+Adding in hooks functionality to transactions's batch.
+
 ## 1.2.0
 
 Adding in hooks functionality to transactions.

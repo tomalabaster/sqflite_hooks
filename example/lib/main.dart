@@ -50,6 +50,13 @@ class _MyAppState extends State<MyApp> {
     await Future.delayed(Duration(seconds: 5), () async {
       await database.transaction((transaction) async {
         transaction.insert('Users', {'Name': 'Mx Wright'});
+
+        var batch = transaction.batch();
+
+        batch.insert('Users', {'Name': 'Mx Jones'});
+        batch.insert('Users', {'Name': 'Mx Daniels'});
+
+        await batch.commit();
       });
     });
   }
