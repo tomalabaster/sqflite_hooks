@@ -22,10 +22,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'demo.db');
-    var database = await openDatabase(path, version: 1,
+    var database = await openDatabase(path, version: 2,
         onCreate: (database, version) async {
       await database.execute(
-          '''CREATE TABLE Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL);''');
+          '''CREATE TABLE Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL UNIQUE);''');
+    }, onUpgrade: (database, oldVersion, newVersion) async {
+      if (oldVersion == 1) {
+        if (newVersion == 2) {
+          await database.execute('''DROP TABLE Users;''');
+          await database.execute(
+              '''CREATE TABLE Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL UNIQUE);''');
+        }
+      }
     });
 
     database.addHook(
@@ -35,10 +43,10 @@ class _MyAppState extends State<MyApp> {
       print(event.values);
     }, 'NewUserHook');
 
-    await Future.delayed(Duration(seconds: 5),
+    await Future.delayed(Duration(seconds: 1),
         () => database.insert('Users', {'Name': 'Mx Doe'}));
 
-    await Future.delayed(Duration(seconds: 5), () async {
+    await Future.delayed(Duration(seconds: 1), () async {
       var batch = database.batch();
 
       batch.insert('Users', {'Name': 'Mx Smith'});
@@ -47,9 +55,10 @@ class _MyAppState extends State<MyApp> {
       await batch.commit();
     });
 
-    await Future.delayed(Duration(seconds: 5), () async {
+    await Future.delayed(Duration(seconds: 1), () async {
       await database.transaction((transaction) async {
-        transaction.insert('Users', {'Name': 'Mx Wright'});
+        await transaction.insert('Users', {'Name': 'Mx Brown'});
+        await transaction.insert('Users', {'Name': 'Mx Wright'});
 
         var batch = transaction.batch();
 
@@ -57,6 +66,10 @@ class _MyAppState extends State<MyApp> {
         batch.insert('Users', {'Name': 'Mx Daniels'});
 
         await batch.commit();
+      }, onRollBack: (events) {
+        for (var event in events) {
+          print(event);
+        }
       });
     });
   }

@@ -3,6 +3,7 @@ import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_operation.dart';
 import 'package:sqflite_hooks/src/hooked_batch.dart';
 import 'package:sqflite_hooks/src/hooked_database_executor_mixin.dart';
+import 'package:sqflite_hooks/src/hooked_transaction_exception.dart';
 
 class HookedTransaction implements Transaction {
   final Transaction _transaction;
@@ -24,7 +25,7 @@ class HookedTransaction implements Transaction {
           ._transaction
           .delete(table, where: where, whereArgs: whereArgs);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     var event =
@@ -41,7 +42,7 @@ class HookedTransaction implements Transaction {
     try {
       return this._transaction.execute(sql, arguments);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
   }
 
@@ -54,7 +55,7 @@ class HookedTransaction implements Transaction {
       result = await this._transaction.insert(table, values,
           nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     var event =
@@ -91,7 +92,7 @@ class HookedTransaction implements Transaction {
           limit: limit,
           offset: offset);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     return result;
@@ -104,7 +105,7 @@ class HookedTransaction implements Transaction {
     try {
       result = this._transaction.rawDelete(sql, arguments);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     return result;
@@ -117,7 +118,7 @@ class HookedTransaction implements Transaction {
     try {
       this._transaction.rawInsert(sql, arguments);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     return result;
@@ -130,7 +131,7 @@ class HookedTransaction implements Transaction {
     try {
       result = this._transaction.rawQuery(sql, arguments);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     return result;
@@ -143,7 +144,7 @@ class HookedTransaction implements Transaction {
     try {
       result = this._transaction.rawUpdate(sql, arguments);
     } catch (e) {
-      rethrow;
+      throw HookedTransactionException(e, this._events);
     }
 
     return result;
@@ -154,10 +155,16 @@ class HookedTransaction implements Transaction {
       {String where,
       List whereArgs,
       ConflictAlgorithm conflictAlgorithm}) async {
-    var result = await this._transaction.update(table, values,
-        where: where,
-        whereArgs: whereArgs,
-        conflictAlgorithm: conflictAlgorithm);
+    var result;
+
+    try {
+      result = await this._transaction.update(table, values,
+          where: where,
+          whereArgs: whereArgs,
+          conflictAlgorithm: conflictAlgorithm);
+    } catch (e) {
+      throw HookedTransactionException(e, this._events);
+    }
 
     var event = DatabaseEvent(
         DatabaseOperation.update, table, values, where, whereArgs);

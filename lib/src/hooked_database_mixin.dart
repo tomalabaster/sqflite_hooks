@@ -3,6 +3,7 @@ import 'package:sqflite_hooks/src/base_hooked_database.dart';
 import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_hook.dart';
 import 'package:sqflite_hooks/src/hooked_transaction.dart';
+import 'package:sqflite_hooks/src/hooked_transaction_exception.dart';
 
 mixin HookedDatabaseMixin on BaseHookedDatabase, Database {
   List<DatabaseHook> _hooks;
@@ -37,10 +38,22 @@ mixin HookedDatabaseMixin on BaseHookedDatabase, Database {
 
   @override
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action,
-          {bool exclusive}) =>
-      this.database.transaction(
-          (transaction) => action(HookedTransaction(transaction, this)),
-          exclusive: exclusive);
+          {bool exclusive, Function(List<DatabaseEvent>) onRollBack}) =>
+      this.database.transaction((transaction) async {
+        var result;
+
+        try {
+          result = await action(HookedTransaction(transaction, this));
+        } on HookedTransactionException catch (e) {
+          if (onRollBack != null) {
+            await onRollBack(e.executedDatabaseEvents);
+          }
+
+          throw e.exception;
+        }
+
+        return result;
+      }, exclusive: exclusive);
 
   void addHook(bool Function(DatabaseEvent) predicate,
       Function(DatabaseEvent) hook, String key) {
