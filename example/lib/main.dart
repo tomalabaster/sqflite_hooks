@@ -12,6 +12,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  HookedDatabase _database;
+
   @override
   void initState() {
     super.initState();
@@ -22,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'demo.db');
-    var database = await openDatabase(path, version: 2,
+    this._database = await openDatabase(path, version: 2,
         onCreate: (database, version) async {
       await database.execute(
           '''CREATE TABLE Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL UNIQUE);''');
@@ -36,42 +38,12 @@ class _MyAppState extends State<MyApp> {
       }
     });
 
-    database.addHook(
+    this._database.addHook(
         (event) =>
             event.table == 'Users' &&
             event.operation == DatabaseOperation.insert, (event) {
       print(event.values);
     }, 'NewUserHook');
-
-    await Future.delayed(Duration(seconds: 1),
-        () => database.insert('Users', {'Name': 'Mx Doe'}));
-
-    await Future.delayed(Duration(seconds: 1), () async {
-      var batch = database.batch();
-
-      batch.insert('Users', {'Name': 'Mx Smith'});
-      batch.insert('Users', {'Name': 'Mx Williams'});
-
-      await batch.commit();
-    });
-
-    await Future.delayed(Duration(seconds: 1), () async {
-      await database.transaction((transaction) async {
-        await transaction.insert('Users', {'Name': 'Mx Brown'});
-        await transaction.insert('Users', {'Name': 'Mx Wright'});
-
-        var batch = transaction.batch();
-
-        batch.insert('Users', {'Name': 'Mx Jones'});
-        batch.insert('Users', {'Name': 'Mx Daniels'});
-
-        await batch.commit();
-      }, onRollBack: (events) {
-        for (var event in events) {
-          print(event);
-        }
-      });
-    });
   }
 
   @override
@@ -82,7 +54,46 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Sqflite hooks example app'),
         ),
         body: Center(
-          child: const Text('Sqflite hooks example app'),
+          child: Column(
+            children: <Widget>[
+              RaisedButton(
+                child: Text('Database insert'),
+                onPressed: () =>
+                    this._database.insert('Users', {'Name': 'Mx Doe'}),
+              ),
+              RaisedButton(
+                child: Text('Database batch'),
+                onPressed: () async {
+                  var batch = this._database.batch();
+
+                  batch.insert('Users', {'Name': 'Mx Smith'});
+                  batch.insert('Users', {'Name': 'Mx Williams'});
+
+                  await batch.commit();
+                },
+              ),
+              RaisedButton(
+                child: Text('Database transaction'),
+                onPressed: () async {
+                  await this._database.transaction((transaction) async {
+                    var batch = transaction.batch();
+
+                    batch.insert('Users', {'Name': 'Mx Jones'});
+                    batch.insert('Users', {'Name': 'Mx Daniels'});
+
+                    await batch.commit();
+
+                    await transaction.insert('Users', {'Name': 'Mx Brown'});
+                    await transaction.insert('Users', {'Name': 'Mx Wright'});
+                  }, onRollBack: (events) {
+                    for (var event in events) {
+                      print(event);
+                    }
+                  });
+                },
+              )
+            ],
+          ),
         ),
       ),
     );

@@ -97,6 +97,18 @@ await database.transaction((transaction) async {
 
 Hooks get fired for each `operation` performed on a `HookedTransaction`
 
+If a transaction fails and hooks have already fired, you can provide a function to the named parameter `onRollBack` when creating a hooked transaction. `onRollBack` expects a `Function(List<DatabaseEvent>)` argument:
+
+```dart
+await database.transaction((transaction) async {
+    ...
+}, onRollBack: (events) {
+    for (var event in events) {
+        // undo anything that might have happened from fired hooks before the transaction failed
+    }
+});
+```
+
 ### Batches
 
 Hooks on a `HookedDatabase` will also be fired when using a `HookedBatch`. You can get a `HookedBatch` object as you would usually get a `Batch`:

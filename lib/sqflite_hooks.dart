@@ -3,6 +3,7 @@ import 'package:sqflite_hooks/src/hooked_database.dart';
 
 export 'package:sqflite/sqflite.dart';
 export 'package:sqflite_hooks/src/database_operation.dart';
+export 'package:sqflite_hooks/src/hooked_database.dart';
 
 Future<HookedDatabase> openDatabase(String path,
     {int version,

@@ -1,3 +1,7 @@
+## 1.4.0
+
+Adding on rollback callback for failed transactions
+
 ## 1.3.0
 
 Adding in hooks functionality to transactions's batch.
