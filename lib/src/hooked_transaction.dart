@@ -5,6 +5,7 @@ import 'package:sqflite_hooks/src/hooked_batch.dart';
 import 'package:sqflite_hooks/src/hooked_database_executor_mixin.dart';
 import 'package:sqflite_hooks/src/hooked_transaction_exception.dart';
 
+/// A wrapper around a sqflite [Transaction] object to intercept actions and fire hooks.
 class HookedTransaction implements Transaction {
   final Transaction _transaction;
   final HookedDatabaseExecutorMixin _database;

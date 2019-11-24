@@ -3,6 +3,7 @@ import 'package:sqflite_hooks/src/database_event.dart';
 import 'package:sqflite_hooks/src/database_operation.dart';
 import 'package:sqflite_hooks/src/hooked_database_executor_mixin.dart';
 
+/// A wrapper around a sqflite [Batch] object to intercept actions and fire hooks.
 class HookedBatch implements Batch {
   final Batch _batch;
   final HookedDatabaseExecutorMixin _database;
